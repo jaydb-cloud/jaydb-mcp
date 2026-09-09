@@ -1,0 +1,48 @@
+{
+  "name": "@jaydb/mcp",
+  "version": "0.1.0",
+  "description": "Model Context Protocol (MCP) server for JayDB & JayDB Cloud — allows AI assistants to read, write, and manage serverless documents with CAS",
+  "main": "index.js",
+  "type": "module",
+  "bin": {
+    "jaydb-mcp": "./index.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://jaydb.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jaydb-cloud/jaydb-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jaydb-cloud/jaydb-mcp/issues"
+  },
+  "files": [
+    "index.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "node index.js",
+    "test": "node -e \"import('./index.js').then(() => { console.log('MCP Smoke Test Passed'); setTimeout(() => process.exit(0), 100); })\""
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "jaydb",
+    "jaydb-cloud",
+    "database",
+    "ai",
+    "cursor",
+    "claude",
+    "optimistic-concurrency",
+    "serverless"
+  ],
+  "author": "JayDB Cloud",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.6.1",
+    "zod": "^3.24.2"
+  }
+}
