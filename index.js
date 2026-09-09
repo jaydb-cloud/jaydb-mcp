@@ -367,14 +367,77 @@ server.resource(
   }
 );
 
-// Start stdio transport
+import http from 'node:http';
+import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+
+// Parse CLI flags and environment variables
+const args = process.argv.slice(2);
+const portFlagIndex = args.findIndex((a) => a === '--port' || a === '-p');
+const portFromFlag = portFlagIndex !== -1 ? parseInt(args[portFlagIndex + 1], 10) : null;
+const isSSE = args.includes('--sse') || process.env.MCP_TRANSPORT === 'sse' || Boolean(process.env.PORT) || portFromFlag !== null;
+const port = portFromFlag || (process.env.PORT ? parseInt(process.env.PORT, 10) : null) || (args.includes('--sse') ? 3000 : null);
+
+// Start transport
 async function run() {
-  const transport = new StdioServerTransport();
-  await server.connect(transport);
-  console.error('JayDB MCP server running on stdio');
+  if (isSSE && port) {
+    let transport = null;
+    const httpServer = http.createServer(async (req, res) => {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-JayDB-API-Key');
+
+      if (req.method === 'OPTIONS') {
+        res.writeHead(204).end();
+        return;
+      }
+
+      const parsedUrl = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+
+      if (req.method === 'GET' && parsedUrl.pathname === '/sse') {
+        transport = new SSEServerTransport('/messages', res);
+        await server.connect(transport);
+        return;
+      }
+
+      if (req.method === 'POST' && parsedUrl.pathname === '/messages') {
+        if (!transport) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'No active SSE connection' }));
+          return;
+        }
+        await transport.handlePostMessage(req, res);
+        return;
+      }
+
+      if (req.method === 'GET' && (parsedUrl.pathname === '/' || parsedUrl.pathname === '/health')) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          status: 'ok',
+          server: 'jaydb-mcp',
+          version: '0.1.0',
+          transport: 'sse',
+          sseEndpoint: '/sse',
+          messagesEndpoint: '/messages',
+        }));
+        return;
+      }
+
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Not found' }));
+    });
+
+    httpServer.listen(port, () => {
+      console.error(`JayDB MCP server running on SSE at http://localhost:${port}/sse`);
+    });
+  } else {
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+    console.error('JayDB MCP server running on stdio');
+  }
 }
 
 run().catch((err) => {
   console.error('Fatal error starting JayDB MCP server:', err);
   process.exit(1);
 });
+

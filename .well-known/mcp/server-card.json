@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json.schemastore.org/mcp-server-card.json",
+  "serverInfo": {
+    "name": "jaydb-mcp",
+    "version": "0.1.0",
+    "description": "Model Context Protocol (MCP) server for JayDB & JayDB Cloud — allows AI assistants to read, write, and manage serverless documents with optimistic concurrency (CAS)"
+  },
+  "tools": [
+    {
+      "name": "jaydb_get",
+      "description": "Retrieve a document by key from JayDB or JayDB Cloud",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The document path key, e.g. 'users/123/profile' or 'boards/task-4'"
+          },
+          "namespace": {
+            "type": "string",
+            "description": "Namespace name (defaults to JAYDB_NAMESPACE or 'default')"
+          }
+        },
+        "required": ["key"]
+      }
+    },
+    {
+      "name": "jaydb_put",
+      "description": "Create or update a document with optimistic concurrency control (CAS)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The document path key, e.g. 'users/123/profile'"
+          },
+          "data": {
+            "description": "The document content (JSON object, array, or string)"
+          },
+          "ifMatch": {
+            "type": "string",
+            "description": "Expected ETag for optimistic locking (CAS). Rejects write if modified concurrently."
+          },
+          "createOnly": {
+            "type": "boolean",
+            "description": "If true, fails if document already exists (If-None-Match: *)"
+          },
+          "namespace": {
+            "type": "string",
+            "description": "Namespace name"
+          }
+        },
+        "required": ["key", "data"]
+      }
+    },
+    {
+      "name": "jaydb_delete",
+      "description": "Delete a document from JayDB or JayDB Cloud",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The document path key to delete"
+          },
+          "ifMatch": {
+            "type": "string",
+            "description": "Expected ETag for optimistic locking guard"
+          },
+          "namespace": {
+            "type": "string",
+            "description": "Namespace name"
+          }
+        },
+        "required": ["key"]
+      }
+    },
+    {
+      "name": "jaydb_list",
+      "description": "List keys and metadata by prefix in JayDB or JayDB Cloud",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "prefix": {
+            "type": "string",
+            "description": "Key prefix to list, e.g. 'users/' or 'boards/'"
+          },
+          "limit": {
+            "type": "number",
+            "description": "Max items to return (default: 50)"
+          },
+          "namespace": {
+            "type": "string",
+            "description": "Namespace name"
+          }
+        }
+      }
+    },
+    {
+      "name": "jaydb_health",
+      "description": "Check connectivity and health of the JayDB endpoint",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "baseUrl": {
+            "type": "string",
+            "description": "JayDB base URL to test (defaults to configured JAYDB_URL)"
+          }
+        }
+      }
+    }
+  ]
+}

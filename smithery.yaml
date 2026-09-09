@@ -1,5 +1,19 @@
+runtime: "container"
+build:
+  dockerfile: "Dockerfile"
+  dockerBuildPath: "."
 startCommand:
   type: "stdio"
+  commandFunction: |-
+    (config) => ({
+      command: "node",
+      args: ["index.js"],
+      env: {
+        JAYDB_URL: config?.JAYDB_URL || "http://localhost:8080",
+        JAYDB_API_KEY: config?.JAYDB_API_KEY || "",
+        JAYDB_NAMESPACE: config?.JAYDB_NAMESPACE || "default"
+      }
+    })
 configSchema:
   type: "object"
   properties:
@@ -14,16 +28,6 @@ configSchema:
       type: "string"
       description: "Default namespace / document bucket"
       default: "default"
-commandFunction: |-
-  (config) => ({
-    command: "npx",
-    args: ["-y", "@jaydb/mcp"],
-    env: {
-      JAYDB_URL: config.JAYDB_URL || "http://localhost:8080",
-      JAYDB_API_KEY: config.JAYDB_API_KEY || "",
-      JAYDB_NAMESPACE: config.JAYDB_NAMESPACE || "default"
-    }
-  })
 exampleConfig:
   JAYDB_URL: "https://acme.jaydb.com"
   JAYDB_API_KEY: "jcloud_sec_example"
