@@ -1,0 +1,30 @@
+startCommand:
+  type: "stdio"
+configSchema:
+  type: "object"
+  properties:
+    JAYDB_URL:
+      type: "string"
+      description: "JayDB Cloud tenant URL (e.g. https://your-tenant.jaydb.com) or local JayDB instance"
+      default: "http://localhost:8080"
+    JAYDB_API_KEY:
+      type: "string"
+      description: "JayDB API Key (optional for local open-source instance, required for JayDB Cloud)"
+    JAYDB_NAMESPACE:
+      type: "string"
+      description: "Default namespace / document bucket"
+      default: "default"
+commandFunction: |-
+  (config) => ({
+    command: "npx",
+    args: ["-y", "@jaydb/mcp"],
+    env: {
+      JAYDB_URL: config.JAYDB_URL || "http://localhost:8080",
+      JAYDB_API_KEY: config.JAYDB_API_KEY || "",
+      JAYDB_NAMESPACE: config.JAYDB_NAMESPACE || "default"
+    }
+  })
+exampleConfig:
+  JAYDB_URL: "https://acme.jaydb.com"
+  JAYDB_API_KEY: "jcloud_sec_example"
+  JAYDB_NAMESPACE: "default"
